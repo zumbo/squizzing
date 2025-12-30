@@ -1,0 +1,106 @@
+/* Squizzing Custom Styles */
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
+
+/* Quiz Timer */
+.quiz-timer {
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.quiz-timer-bar {
+    height: 100%;
+    background-color: #0d6efd;
+    transition: width 0.1s linear;
+}
+
+.quiz-timer-bar.warning {
+    background-color: #ffc107;
+}
+
+.quiz-timer-bar.danger {
+    background-color: #dc3545;
+}
+
+/* Answer Options */
+.answer-option {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.answer-option:hover {
+    border-color: #0d6efd;
+    background-color: #f8f9fa;
+}
+
+.answer-option.selected {
+    border-color: #0d6efd;
+    background-color: #cfe2ff;
+}
+
+.answer-option.correct {
+    border-color: #198754;
+    background-color: #d1e7dd;
+}
+
+.answer-option.incorrect {
+    border-color: #dc3545;
+    background-color: #f8d7da;
+}
+
+/* Question Card */
+.question-card {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Scoreboard */
+.scoreboard-rank {
+    width: 50px;
+    font-weight: bold;
+}
+
+.scoreboard-rank-1 {
+    color: #ffc107;
+}
+
+.scoreboard-rank-2 {
+    color: #6c757d;
+}
+
+.scoreboard-rank-3 {
+    color: #cd7f32;
+}
+
+/* Admin Tables */
+.admin-table th {
+    white-space: nowrap;
+}
+
+/* Image Preview */
+.question-image {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+}
+
+.answer-image {
+    max-width: 150px;
+    max-height: 100px;
+    object-fit: contain;
+}

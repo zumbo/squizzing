@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
+<head>
+    <title th:text="${round != null} ? 'Edit Round' : 'New Round'">Round Form - Squizzing</title>
+</head>
+<body>
+<div th:fragment="content">
+    <h1 th:text="${round != null} ? 'Edit Round' : 'New Round'">Round Form</h1>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <form th:action="${round != null} ? @{/admin/rounds/{id}(id=${round.id})} : @{/admin/rounds}"
+                          method="post">
+
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Round Name</label>
+                            <input type="text" class="form-control" id="name" name="name"
+                                   th:value="${round?.name}" required placeholder="e.g., Week 1 - January 2025">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="startDate" name="startDate"
+                                   th:value="${round?.startDate}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="endDate" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="endDate" name="endDate"
+                                   th:value="${round?.endDate}" required>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <span th:text="${round != null} ? 'Update Round' : 'Create Round'">Save</span>
+                            </button>
+                            <a th:href="@{/admin/rounds}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

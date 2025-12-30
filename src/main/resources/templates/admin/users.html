@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>Manage Users - Squizzing</title>
+</head>
+<body>
+<div th:fragment="content">
+    <h1 class="mb-4">Manage Users</h1>
+
+    <!-- Add User Form -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Add New User</h5>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/admin/users}" method="post" class="row g-3">
+                <div class="col-md-4">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required
+                           placeholder="user@example.com">
+                </div>
+                <div class="col-md-3">
+                    <label for="displayName" class="form-label">Display Name</label>
+                    <input type="text" class="form-control" id="displayName" name="displayName" required
+                           placeholder="John Doe">
+                </div>
+                <div class="col-md-3">
+                    <label for="role" class="form-label">Role</label>
+                    <select class="form-select" id="role" name="role" required>
+                        <option th:each="r : ${roles}" th:value="${r}" th:text="${r}">PLAYER</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Users List -->
+    <div class="card">
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(users)}" class="text-center py-5 text-muted">
+                <p>No users yet. Add your first user above.</p>
+            </div>
+
+            <table th:unless="${#lists.isEmpty(users)}" class="table table-hover admin-table mb-0">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Display Name</th>
+                        <th>Role</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="user : ${users}">
+                        <td th:text="${user.email}">user@example.com</td>
+                        <td>
+                            <form th:action="@{/admin/users/{id}(id=${user.id})}" method="post" class="d-inline">
+                                <input type="text" name="displayName" th:value="${user.displayName}"
+                                       class="form-control form-control-sm d-inline-block" style="width: 150px;">
+                                <select name="role" class="form-select form-select-sm d-inline-block" style="width: 100px;">
+                                    <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"
+                                            th:selected="${r == user.role}">PLAYER</option>
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                            </form>
+                        </td>
+                        <td>
+                            <span th:if="${user.role.name() == 'ADMIN'}" class="badge bg-danger">Admin</span>
+                            <span th:if="${user.role.name() == 'PLAYER'}" class="badge bg-primary">Player</span>
+                        </td>
+                        <td th:text="${#temporals.format(user.createdAt, 'dd.MM.yyyy')}">01.01.2025</td>
+                        <td class="text-end">
+                            <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post"
+                                  class="d-inline" onsubmit="return confirm('Delete this user?')">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a th:href="@{/admin}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>Questions - Squizzing</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 th:text="${round.name}">Round Name</h1>
+            <p class="text-muted mb-0">
+                <span th:text="${#temporals.format(round.startDate, 'dd.MM.yyyy')}">01.01</span>
+                -
+                <span th:text="${#temporals.format(round.endDate, 'dd.MM.yyyy')}">07.01</span>
+            </p>
+        </div>
+    </div>
+
+    <!-- Import Questions -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Import Questions</h5>
+        </div>
+        <div class="card-body">
+            <form th:action="@{/admin/rounds/{id}/questions/import(id=${round.id})}"
+                  method="post" enctype="multipart/form-data" class="row g-3 align-items-end">
+                <div class="col-md-8">
+                    <label for="file" class="form-label">Upload Excel (.xlsx) or CSV file</label>
+                    <input type="file" class="form-control" id="file" name="file"
+                           accept=".xlsx,.xls,.csv" required>
+                    <div class="form-text">
+                        Expected columns: Question Text, Question Type, Option 1-4, Correct Answer (1-4), Time, Image Link, Explanation
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary w-100">Import Questions</button>
+                </div>
+            </form>
+
+            <!-- Import Errors -->
+            <div th:if="${importErrors != null}" class="mt-3">
+                <div class="alert alert-warning">
+                    <h6>Import Warnings:</h6>
+                    <ul class="mb-0">
+                        <li th:each="err : ${importErrors}" th:text="${err}">Error message</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions List -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Questions (<span th:text="${#lists.size(questions)}">0</span>)</h5>
+        </div>
+        <div class="card-body">
+            <div th:if="${#lists.isEmpty(questions)}" class="text-center py-5 text-muted">
+                <p>No questions yet. Import questions using the form above.</p>
+            </div>
+
+            <div th:unless="${#lists.isEmpty(questions)}" class="list-group list-group-flush">
+                <div th:each="question, stat : ${questions}" class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <span class="badge bg-secondary" th:text="'Q' + ${stat.count}">Q1</span>
+                                <strong th:if="${question.text != null}" th:text="${question.text}">Question text</strong>
+                                <span th:if="${question.text == null}" class="text-muted">(Image only)</span>
+                                <img th:if="${question.imageFilename != null}"
+                                     th:src="@{/images/{filename}(filename=${question.imageFilename})}"
+                                     class="answer-image ms-2" alt="Question image">
+                            </div>
+                            <div class="row row-cols-1 row-cols-md-2 g-2">
+                                <div th:each="answer, answerStat : ${question.answerOptions}" class="col">
+                                    <div class="p-2 border rounded"
+                                         th:classappend="${answer.correct} ? 'border-success bg-success-subtle' : ''">
+                                        <small class="text-muted" th:text="${answerStat.count} + '.'">1.</small>
+                                        <span th:text="${answer.text}">Answer text</span>
+                                        <span th:if="${answer.correct}" class="badge bg-success ms-1">Correct</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div th:if="${question.explanation != null}" class="mt-2 text-muted small">
+                                <strong>Explanation:</strong> <span th:text="${question.explanation}">Explanation text</span>
+                            </div>
+                        </div>
+                        <form th:action="@{/admin/questions/{id}/delete(id=${question.id})}" method="post"
+                              onsubmit="return confirm('Delete this question?')">
+                            <input type="hidden" name="roundId" th:value="${round.id}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a th:href="@{/admin/rounds}" class="btn btn-outline-secondary">Back to Rounds</a>
+    </div>
+</div>
+</body>
+</html>

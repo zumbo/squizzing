@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>Scoreboard - Squizzing</title>
+</head>
+<body>
+<div th:fragment="content">
+    <h1 class="mb-4">Scoreboard</h1>
+
+    <!-- Round Selector -->
+    <div th:if="${!#lists.isEmpty(rounds)}" class="mb-4">
+        <div class="d-flex flex-wrap gap-2">
+            <a th:each="round : ${rounds}"
+               th:href="@{/scoreboard(roundId=${round.id})}"
+               th:text="${round.name}"
+               th:classappend="${selectedRound != null && selectedRound.id == round.id} ? 'btn-primary' : 'btn-outline-primary'"
+               class="btn btn-sm">Round</a>
+        </div>
+    </div>
+
+    <!-- No Rounds -->
+    <div th:if="${#lists.isEmpty(rounds)}" class="text-center py-5">
+        <h4 class="text-muted">No rounds available yet</h4>
+        <p>Check back later for quiz results.</p>
+    </div>
+
+    <!-- Scoreboard Table -->
+    <div th:if="${selectedRound != null}" class="card">
+        <div class="card-header">
+            <h5 class="mb-0" th:text="${selectedRound.name}">Round Name</h5>
+            <small class="text-muted">
+                <span th:text="${#temporals.format(selectedRound.startDate, 'dd.MM.yyyy')}">01.01</span>
+                -
+                <span th:text="${#temporals.format(selectedRound.endDate, 'dd.MM.yyyy')}">07.01</span>
+            </small>
+        </div>
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(scoreboard)}" class="text-center py-5 text-muted">
+                <p>No scores yet. Be the first to complete this quiz!</p>
+            </div>
+
+            <table th:unless="${#lists.isEmpty(scoreboard)}" class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th class="scoreboard-rank">#</th>
+                        <th>Player</th>
+                        <th class="text-end">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="entry : ${scoreboard}"
+                        th:classappend="${entry.isCurrentUser} ? 'table-primary' : ''">
+                        <td class="scoreboard-rank"
+                            th:classappend="${entry.rank == 1} ? 'scoreboard-rank-1' : (${entry.rank == 2} ? 'scoreboard-rank-2' : (${entry.rank == 3} ? 'scoreboard-rank-3' : ''))">
+                            <span th:if="${entry.rank == 1}">&#127942;</span>
+                            <span th:if="${entry.rank == 2}">&#129352;</span>
+                            <span th:if="${entry.rank == 3}">&#129353;</span>
+                            <span th:if="${entry.rank > 3}" th:text="${entry.rank}">4</span>
+                        </td>
+                        <td>
+                            <span th:text="${entry.displayName}">Player Name</span>
+                            <span th:if="${entry.isCurrentUser}" class="badge bg-primary ms-2">You</span>
+                        </td>
+                        <td class="text-end">
+                            <strong th:text="${entry.score}">1500</strong>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a th:href="@{/}" class="btn btn-outline-secondary">Back to Home</a>
+    </div>
+</div>
+</body>
+</html>

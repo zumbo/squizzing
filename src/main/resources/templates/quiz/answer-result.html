@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>Answer Result - Squizzing</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="question-card">
+        <div class="card shadow mb-4">
+            <div class="card-body text-center py-5">
+                <!-- Result Icon -->
+                <div th:if="${result.correct}" class="mb-4">
+                    <div class="display-1 text-success">+<span th:text="${result.score}">100</span></div>
+                    <h3 class="text-success">Correct!</h3>
+                </div>
+                <div th:unless="${result.correct}" class="mb-4">
+                    <div class="display-1 text-danger">0</div>
+                    <h3 class="text-danger">Incorrect</h3>
+                </div>
+
+                <!-- Correct Answer -->
+                <div class="alert alert-info">
+                    <strong>Correct Answer:</strong>
+                    <span th:text="${result.correctAnswer.text}">Answer text</span>
+                </div>
+
+                <!-- Explanation -->
+                <div th:if="${result.explanation != null}" class="alert alert-secondary">
+                    <strong>Explanation:</strong>
+                    <span th:text="${result.explanation}">Explanation text</span>
+                </div>
+
+                <!-- Next Button -->
+                <div th:if="${result.hasNextQuestion}">
+                    <a th:href="@{/quiz/continue/{id}(id=${playerRoundId})}" class="btn btn-primary btn-lg">
+                        Next Question
+                    </a>
+                </div>
+                <div th:unless="${result.hasNextQuestion}">
+                    <a th:href="@{/quiz/result/{id}(id=${playerRoundId})}" class="btn btn-success btn-lg">
+                        See Results
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Auto-proceed after 3 seconds if there's a next question
+        const hasNext = [[${result.hasNextQuestion}]];
+        if (hasNext) {
+            let countdown = 3;
+            const btn = document.querySelector('.btn-primary');
+            const originalText = btn.textContent;
+
+            const interval = setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    clearInterval(interval);
+                    btn.click();
+                } else {
+                    btn.textContent = originalText + ' (' + countdown + ')';
+                }
+            }, 1000);
+        }
+    </script>
+</div>
+</body>
+</html>

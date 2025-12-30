@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
+<head>
+    <title>Question - Squizzing</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="question-card">
+        <!-- Progress -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="badge bg-secondary fs-6">
+                Question <span th:text="${questionNumber}">1</span> of <span th:text="${totalQuestions}">20</span>
+            </span>
+            <span id="timer-display" class="badge bg-primary fs-6">10s</span>
+        </div>
+
+        <!-- Timer Bar -->
+        <div class="quiz-timer mb-4">
+            <div id="timer-bar" class="quiz-timer-bar" style="width: 100%;"></div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <h4 th:if="${question.text != null}" th:text="${question.text}" class="card-title mb-4">
+                    Question text goes here
+                </h4>
+                <div th:if="${question.imageFilename != null}" class="text-center mb-4">
+                    <img th:src="@{/images/{filename}(filename=${question.imageFilename})}"
+                         alt="Question image" class="question-image img-fluid rounded">
+                </div>
+            </div>
+        </div>
+
+        <!-- Answer Form -->
+        <form th:action="@{/quiz/answer}" method="post" id="answer-form">
+            <input type="hidden" name="playerRoundId" th:value="${state.playerRound.id}">
+            <input type="hidden" name="questionId" th:value="${question.id}">
+
+            <div class="row g-3 mb-4">
+                <div th:each="answer, stat : ${shuffledAnswers}" class="col-md-6">
+                    <div class="card answer-option h-100" th:data-answer-id="${answer.id}" onclick="selectAnswer(this)">
+                        <div class="card-body d-flex align-items-center">
+                            <span class="badge bg-secondary me-3" th:text="${stat.count}">1</span>
+                            <div class="flex-grow-1">
+                                <span th:text="${answer.text}">Answer text</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <input type="hidden" name="answerId" id="selected-answer" value="">
+        </form>
+    </div>
+
+    <script th:inline="javascript">
+        const TIMER_SECONDS = [[${timerSeconds}]];
+        let timeRemaining = TIMER_SECONDS;
+        let timerInterval;
+        let selectedAnswerId = null;
+
+        function selectAnswer(element) {
+            // Prevent double-submission
+            if (selectedAnswerId !== null) return;
+
+            // Select this answer
+            element.classList.add('selected');
+            const answerId = element.dataset.answerId;
+            selectedAnswerId = answerId;
+            document.getElementById('selected-answer').value = answerId;
+
+            // Stop timer and submit
+            clearInterval(timerInterval);
+            document.getElementById('answer-form').submit();
+        }
+
+        function updateTimer() {
+            const timerBar = document.getElementById('timer-bar');
+            const timerDisplay = document.getElementById('timer-display');
+
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                // Auto-submit when time runs out
+                document.getElementById('answer-form').submit();
+                return;
+            }
+
+            timeRemaining -= 0.1;
+            const percentage = (timeRemaining / TIMER_SECONDS) * 100;
+            timerBar.style.width = percentage + '%';
+            timerDisplay.textContent = Math.ceil(timeRemaining) + 's';
+
+            // Color changes
+            if (percentage <= 30) {
+                timerBar.classList.add('danger');
+                timerBar.classList.remove('warning');
+            } else if (percentage <= 60) {
+                timerBar.classList.add('warning');
+            }
+        }
+
+        // Start timer
+        timerInterval = setInterval(updateTimer, 100);
+
+        // Allow keyboard selection (1-4 keys)
+        document.addEventListener('keydown', function(e) {
+            if (e.key >= '1' && e.key <= '4') {
+                const index = parseInt(e.key) - 1;
+                const options = document.querySelectorAll('.answer-option');
+                if (options[index]) {
+                    options[index].click();
+                }
+            }
+        });
+    </script>
+</div>
+</body>
+</html>
