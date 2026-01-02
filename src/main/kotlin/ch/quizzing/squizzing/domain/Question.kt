@@ -16,6 +16,10 @@ class Question(
     @Column(nullable = false)
     var orderIndex: Int,
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 2)
+    var language: UserLanguage = UserLanguage.DE,
+
     @Column(columnDefinition = "TEXT")
     var text: String? = null,
 
@@ -26,7 +30,7 @@ class Question(
 
     @OneToMany(mappedBy = "question", cascade = [CascadeType.ALL], orphanRemoval = true)
     @OrderBy("orderIndex ASC")
-    val answerOptions: MutableList<AnswerOption> = mutableListOf()
+    val answerOptions: MutableSet<AnswerOption> = mutableSetOf()
 ) {
     fun getCorrectAnswer(): AnswerOption? = answerOptions.find { it.correct }
 }

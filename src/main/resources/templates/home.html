@@ -3,13 +3,13 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
 <head>
-    <title>Squizzing - SQV Online Quiz</title>
+    <title th:text="#{home.title}">Squizzing - SQV Online Quiz</title>
 </head>
 <body>
 <div th:fragment="content">
     <div class="text-center mb-5">
-        <h1 class="display-4">Welcome to Squizzing</h1>
-        <p class="lead text-muted">SQV Online Quiz Platform</p>
+        <h1 class="display-4" th:text="#{home.welcome}">Welcome to Squizzing</h1>
+        <p class="lead text-muted" th:text="#{home.subtitle}">SQV Online Quiz Platform</p>
     </div>
 
     <div class="row justify-content-center">
@@ -25,13 +25,13 @@
                     </p>
 
                     <div sec:authorize="isAuthenticated()">
-                        <a th:href="@{/quiz/start/{id}(id=${activeRound.id})}" class="btn btn-primary btn-lg">
+                        <a th:href="@{/quiz/start/{id}(id=${activeRound.id})}" class="btn btn-primary btn-lg" th:text="#{home.playQuiz}">
                             Play Quiz
                         </a>
                     </div>
                     <div sec:authorize="!isAuthenticated()">
-                        <p class="mb-3">Log in to participate in the quiz!</p>
-                        <a th:href="@{/auth/login}" class="btn btn-primary btn-lg">
+                        <p class="mb-3" th:text="#{home.loginPrompt}">Log in to participate in the quiz!</p>
+                        <a th:href="@{/auth/login}" class="btn btn-primary btn-lg" th:text="#{home.loginToPlay}">
                             Login to Play
                         </a>
                     </div>
@@ -41,11 +41,11 @@
             <!-- No Active Round -->
             <div th:if="${activeRound == null}" class="card shadow-sm mb-4">
                 <div class="card-body text-center">
-                    <h5 class="card-title">No Active Quiz</h5>
-                    <p class="card-text text-muted">
+                    <h5 class="card-title" th:text="#{home.noActiveQuiz}">No Active Quiz</h5>
+                    <p class="card-text text-muted" th:text="#{home.noActiveQuizText}">
                         There's no quiz available right now. Check back later!
                     </p>
-                    <a th:href="@{/scoreboard}" class="btn btn-outline-primary">
+                    <a th:href="@{/scoreboard}" class="btn btn-outline-primary" th:text="#{home.viewScoreboard}">
                         View Scoreboard
                     </a>
                 </div>
@@ -57,8 +57,8 @@
                     <a th:href="@{/scoreboard}" class="text-decoration-none">
                         <div class="card h-100">
                             <div class="card-body">
-                                <h6 class="card-title">Scoreboard</h6>
-                                <small class="text-muted">View rankings</small>
+                                <h6 class="card-title" th:text="#{home.scoreboard}">Scoreboard</h6>
+                                <small class="text-muted" th:text="#{home.viewRankings}">View rankings</small>
                             </div>
                         </div>
                     </a>
@@ -67,8 +67,8 @@
                     <a th:href="@{/quiz/history}" class="text-decoration-none">
                         <div class="card h-100">
                             <div class="card-body">
-                                <h6 class="card-title">My History</h6>
-                                <small class="text-muted">Past quizzes</small>
+                                <h6 class="card-title" th:text="#{home.myHistory}">My History</h6>
+                                <small class="text-muted" th:text="#{home.pastQuizzes}">Past quizzes</small>
                             </div>
                         </div>
                     </a>

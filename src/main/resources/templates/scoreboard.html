@@ -2,11 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
 <head>
-    <title>Scoreboard - Squizzing</title>
+    <title th:text="#{scoreboard.title}">Scoreboard - Squizzing</title>
 </head>
 <body>
 <div th:fragment="content">
-    <h1 class="mb-4">Scoreboard</h1>
+    <h1 class="mb-4" th:text="#{scoreboard.heading}">Scoreboard</h1>
 
     <!-- Round Selector -->
     <div th:if="${!#lists.isEmpty(rounds)}" class="mb-4">
@@ -21,8 +21,8 @@
 
     <!-- No Rounds -->
     <div th:if="${#lists.isEmpty(rounds)}" class="text-center py-5">
-        <h4 class="text-muted">No rounds available yet</h4>
-        <p>Check back later for quiz results.</p>
+        <h4 class="text-muted" th:text="#{scoreboard.noRounds}">No rounds available yet</h4>
+        <p th:text="#{scoreboard.checkBackLater}">Check back later for quiz results.</p>
     </div>
 
     <!-- Scoreboard Table -->
@@ -37,15 +37,15 @@
         </div>
         <div class="card-body p-0">
             <div th:if="${#lists.isEmpty(scoreboard)}" class="text-center py-5 text-muted">
-                <p>No scores yet. Be the first to complete this quiz!</p>
+                <p th:text="#{scoreboard.noScores}">No scores yet. Be the first to complete this quiz!</p>
             </div>
 
             <table th:unless="${#lists.isEmpty(scoreboard)}" class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th class="scoreboard-rank">#</th>
-                        <th>Player</th>
-                        <th class="text-end">Score</th>
+                        <th class="scoreboard-rank" th:text="#{scoreboard.rank}">#</th>
+                        <th th:text="#{scoreboard.player}">Player</th>
+                        <th class="text-end" th:text="#{scoreboard.score}">Score</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,7 +60,7 @@
                         </td>
                         <td>
                             <span th:text="${entry.displayName}">Player Name</span>
-                            <span th:if="${entry.isCurrentUser}" class="badge bg-primary ms-2">You</span>
+                            <span th:if="${entry.isCurrentUser}" class="badge bg-primary ms-2" th:text="#{scoreboard.you}">You</span>
                         </td>
                         <td class="text-end">
                             <strong th:text="${entry.score}">1500</strong>
@@ -72,7 +72,7 @@
     </div>
 
     <div class="mt-3">
-        <a th:href="@{/}" class="btn btn-outline-secondary">Back to Home</a>
+        <a th:href="@{/}" class="btn btn-outline-secondary" th:text="#{scoreboard.backToHome}">Back to Home</a>
     </div>
 </div>
 </body>

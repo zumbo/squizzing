@@ -2,11 +2,11 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
 <head>
-    <title>Quiz - Squizzing</title>
+    <title th:text="#{quiz.title}">Quiz - Squizzing</title>
 </head>
 <body>
 <div th:fragment="content">
-    <h1 class="mb-4">Play Quiz</h1>
+    <h1 class="mb-4" th:text="#{quiz.heading}">Play Quiz</h1>
 
     <div th:if="${activeRound != null}" class="row justify-content-center">
         <div class="col-md-6">
@@ -20,16 +20,16 @@
                     </p>
 
                     <div th:if="${canPlay}">
-                        <a th:href="@{/quiz/start/{id}(id=${activeRound.id})}" class="btn btn-primary btn-lg">
+                        <a th:href="@{/quiz/start/{id}(id=${activeRound.id})}" class="btn btn-primary btn-lg" th:text="#{quiz.startQuiz}">
                             Start Quiz
                         </a>
                     </div>
 
                     <div th:if="${hasCompleted}">
-                        <div class="alert alert-success">
+                        <div class="alert alert-success" th:text="#{quiz.alreadyCompleted}">
                             You have already completed this quiz!
                         </div>
-                        <a th:href="@{/scoreboard}" class="btn btn-outline-primary">View Scoreboard</a>
+                        <a th:href="@{/scoreboard}" class="btn btn-outline-primary" th:text="#{home.viewScoreboard}">View Scoreboard</a>
                     </div>
                 </div>
             </div>
@@ -37,9 +37,9 @@
     </div>
 
     <div th:if="${activeRound == null}" class="text-center py-5">
-        <h4 class="text-muted">No active quiz at the moment</h4>
-        <p>Check back later for the next round!</p>
-        <a th:href="@{/scoreboard}" class="btn btn-outline-primary">View Scoreboard</a>
+        <h4 class="text-muted" th:text="#{quiz.noActiveQuiz}">No active quiz at the moment</h4>
+        <p th:text="#{quiz.checkBackLater}">Check back later for the next round!</p>
+        <a th:href="@{/scoreboard}" class="btn btn-outline-primary" th:text="#{home.viewScoreboard}">View Scoreboard</a>
     </div>
 </div>
 </body>

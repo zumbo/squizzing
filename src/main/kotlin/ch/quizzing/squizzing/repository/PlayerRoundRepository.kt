@@ -17,6 +17,6 @@ interface PlayerRoundRepository : JpaRepository<PlayerRound, Long> {
 
     fun existsByUserIdAndRoundId(userId: Long, roundId: Long): Boolean
 
-    @Query("SELECT DISTINCT pr FROM PlayerRound pr LEFT JOIN FETCH pr.round LEFT JOIN FETCH pr.answers a LEFT JOIN FETCH a.question WHERE pr.id = :id")
+    @Query("SELECT DISTINCT pr FROM PlayerRound pr LEFT JOIN FETCH pr.round LEFT JOIN FETCH pr.answers a LEFT JOIN FETCH a.question q LEFT JOIN FETCH q.answerOptions LEFT JOIN FETCH a.selectedAnswer WHERE pr.id = :id")
     fun findByIdWithAnswers(id: Long): PlayerRound?
 }

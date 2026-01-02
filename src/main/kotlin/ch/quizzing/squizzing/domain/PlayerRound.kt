@@ -30,7 +30,7 @@ class PlayerRound(
     var totalScore: Int = 0,
 
     @OneToMany(mappedBy = "playerRound", cascade = [CascadeType.ALL], orphanRemoval = true)
-    val answers: MutableList<PlayerAnswer> = mutableListOf()
+    val answers: MutableSet<PlayerAnswer> = mutableSetOf()
 ) {
     fun isCompleted(): Boolean = completedAt != null
 }

@@ -8,6 +8,11 @@ enum class UserRole {
     ADMIN
 }
 
+enum class UserLanguage(val code: String, val displayName: String) {
+    DE("de", "Deutsch"),
+    EN("en", "English")
+}
+
 @Entity
 @Table(name = "users")
 class User(
@@ -24,6 +29,10 @@ class User(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     var role: UserRole = UserRole.PLAYER,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 2)
+    var language: UserLanguage = UserLanguage.DE,
 
     @Column(nullable = false)
     val createdAt: Instant = Instant.now()

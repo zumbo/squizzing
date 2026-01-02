@@ -1,10 +1,12 @@
 package ch.quizzing.squizzing.controller
 
+import ch.quizzing.squizzing.domain.UserLanguage
 import ch.quizzing.squizzing.domain.UserRole
 import ch.quizzing.squizzing.repository.QuestionRepository
 import ch.quizzing.squizzing.service.*
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.stereotype.Controller
+import org.springframework.transaction.annotation.Transactional
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
@@ -105,6 +107,7 @@ class AdminController(
         val round = roundService.findById(id) ?: return "redirect:/admin/rounds"
         model.addAttribute("round", round)
         model.addAttribute("questions", questionRepository.findByRoundIdOrderByOrderIndex(id))
+        model.addAttribute("languages", UserLanguage.entries)
         return "admin/questions"
     }
 
@@ -112,6 +115,7 @@ class AdminController(
     fun importQuestions(
         @PathVariable id: Long,
         @RequestParam file: MultipartFile,
+        @RequestParam language: UserLanguage,
         redirectAttributes: RedirectAttributes
     ): String {
         val round = roundService.findById(id)
@@ -120,10 +124,10 @@ class AdminController(
             return "redirect:/admin/rounds"
         }
 
-        val result = questionImportService.importQuestions(file, round)
+        val result = questionImportService.importQuestions(file, round, language)
 
         if (result.success) {
-            redirectAttributes.addFlashAttribute("success", "Imported ${result.questionsImported} questions")
+            redirectAttributes.addFlashAttribute("success", "Imported ${result.questionsImported} ${language.displayName} questions")
         } else {
             redirectAttributes.addFlashAttribute("error", "Import failed")
         }
@@ -133,6 +137,52 @@ class AdminController(
         }
 
         return "redirect:/admin/rounds/${id}/questions"
+    }
+
+    @PostMapping("/questions/{id}")
+    @Transactional
+    fun updateQuestion(
+        @PathVariable id: Long,
+        @RequestParam roundId: Long,
+        @RequestParam text: String?,
+        @RequestParam explanation: String?,
+        @RequestParam answer1: String,
+        @RequestParam answer2: String,
+        @RequestParam answer3: String,
+        @RequestParam answer4: String,
+        @RequestParam answerId1: Long,
+        @RequestParam answerId2: Long,
+        @RequestParam answerId3: Long,
+        @RequestParam answerId4: Long,
+        @RequestParam correctAnswer: Int,
+        redirectAttributes: RedirectAttributes
+    ): String {
+        val question = questionRepository.findById(id).orElse(null)
+        if (question == null) {
+            redirectAttributes.addFlashAttribute("error", "Question not found")
+            return "redirect:/admin/rounds/${roundId}/questions"
+        }
+
+        question.text = text?.takeIf { it.isNotBlank() }
+        question.explanation = explanation?.takeIf { it.isNotBlank() }
+
+        val answers = mapOf(
+            answerId1 to Pair(answer1, correctAnswer == 1),
+            answerId2 to Pair(answer2, correctAnswer == 2),
+            answerId3 to Pair(answer3, correctAnswer == 3),
+            answerId4 to Pair(answer4, correctAnswer == 4)
+        )
+
+        question.answerOptions.forEach { option ->
+            answers[option.id]?.let { (text, correct) ->
+                option.text = text
+                option.correct = correct
+            }
+        }
+
+        questionRepository.save(question)
+        redirectAttributes.addFlashAttribute("success", "Question updated")
+        return "redirect:/admin/rounds/${roundId}/questions"
     }
 
     @PostMapping("/questions/{id}/delete")
@@ -152,6 +202,7 @@ class AdminController(
     fun users(model: Model): String {
         model.addAttribute("users", userService.findAll())
         model.addAttribute("roles", UserRole.entries)
+        model.addAttribute("languages", UserLanguage.entries)
         return "admin/users"
     }
 
@@ -160,10 +211,11 @@ class AdminController(
         @RequestParam email: String,
         @RequestParam displayName: String,
         @RequestParam role: UserRole,
+        @RequestParam language: UserLanguage,
         redirectAttributes: RedirectAttributes
     ): String {
         try {
-            userService.create(email, displayName, role)
+            userService.create(email, displayName, role, language)
             redirectAttributes.addFlashAttribute("success", "User created successfully")
         } catch (e: IllegalArgumentException) {
             redirectAttributes.addFlashAttribute("error", e.message)
@@ -176,9 +228,10 @@ class AdminController(
         @PathVariable id: Long,
         @RequestParam displayName: String,
         @RequestParam role: UserRole,
+        @RequestParam language: UserLanguage,
         redirectAttributes: RedirectAttributes
     ): String {
-        userService.update(id, displayName, role)
+        userService.update(id, displayName, role, language)
         redirectAttributes.addFlashAttribute("success", "User updated successfully")
         return "redirect:/admin/users"
     }

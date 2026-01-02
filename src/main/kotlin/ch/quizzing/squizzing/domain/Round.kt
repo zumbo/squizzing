@@ -28,5 +28,5 @@ class Round(
 
     @OneToMany(mappedBy = "round", cascade = [CascadeType.ALL], orphanRemoval = true)
     @OrderBy("orderIndex ASC")
-    val questions: MutableList<Question> = mutableListOf()
+    val questions: MutableSet<Question> = mutableSetOf()
 )

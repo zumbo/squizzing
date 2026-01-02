@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org"
       th:replace="~{layout/main :: layout(~{::title}, ~{::content})}">
 <head>
-    <title>Answer Result - Squizzing</title>
+    <title th:text="#{answer.title}">Answer Result - Squizzing</title>
 </head>
 <body>
 <div th:fragment="content">
@@ -12,33 +12,33 @@
                 <!-- Result Icon -->
                 <div th:if="${result.correct}" class="mb-4">
                     <div class="display-1 text-success">+<span th:text="${result.score}">100</span></div>
-                    <h3 class="text-success">Correct!</h3>
+                    <h3 class="text-success" th:text="#{answer.correct}">Correct!</h3>
                 </div>
                 <div th:unless="${result.correct}" class="mb-4">
                     <div class="display-1 text-danger">0</div>
-                    <h3 class="text-danger">Incorrect</h3>
+                    <h3 class="text-danger" th:text="#{answer.incorrect}">Incorrect</h3>
                 </div>
 
                 <!-- Correct Answer -->
                 <div class="alert alert-info">
-                    <strong>Correct Answer:</strong>
+                    <strong th:text="#{answer.correctAnswer}">Correct Answer:</strong>
                     <span th:text="${result.correctAnswer.text}">Answer text</span>
                 </div>
 
                 <!-- Explanation -->
                 <div th:if="${result.explanation != null}" class="alert alert-secondary">
-                    <strong>Explanation:</strong>
+                    <strong th:text="#{answer.explanation}">Explanation:</strong>
                     <span th:text="${result.explanation}">Explanation text</span>
                 </div>
 
                 <!-- Next Button -->
                 <div th:if="${result.hasNextQuestion}">
-                    <a th:href="@{/quiz/continue/{id}(id=${playerRoundId})}" class="btn btn-primary btn-lg">
+                    <a th:href="@{/quiz/continue/{id}(id=${playerRoundId})}" class="btn btn-primary btn-lg" th:text="#{answer.nextQuestion}">
                         Next Question
                     </a>
                 </div>
                 <div th:unless="${result.hasNextQuestion}">
-                    <a th:href="@{/quiz/result/{id}(id=${playerRoundId})}" class="btn btn-success btn-lg">
+                    <a th:href="@{/quiz/result/{id}(id=${playerRoundId})}" class="btn btn-success btn-lg" th:text="#{answer.seeResults}">
                         See Results
                     </a>
                 </div>
@@ -47,12 +47,14 @@
     </div>
 
     <script th:inline="javascript">
-        // Auto-proceed after 3 seconds if there's a next question
+        // Auto-proceed: 5 seconds normally, 15 seconds if there's an explanation
         const hasNext = [[${result.hasNextQuestion}]];
+        const hasExplanation = [[${result.explanation != null}]];
         if (hasNext) {
-            let countdown = 3;
+            let countdown = hasExplanation ? 15 : 5;
             const btn = document.querySelector('.btn-primary');
             const originalText = btn.textContent;
+            btn.textContent = originalText + ' (' + countdown + ')';
 
             const interval = setInterval(() => {
                 countdown--;

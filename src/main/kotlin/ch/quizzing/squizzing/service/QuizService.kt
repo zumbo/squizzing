@@ -76,7 +76,7 @@ class QuizService(
             )
         }
 
-        val questions = questionRepository.findByRoundIdOrderByOrderIndex(roundId)
+        val questions = questionRepository.findByRoundIdAndLanguageOrderByOrderIndex(roundId, user.language)
         val answeredCount = playerAnswerRepository.countByPlayerRoundId(playerRound.id)
 
         val currentQuestion = if (answeredCount < questions.size) {
@@ -140,10 +140,10 @@ class QuizService(
         playerRound.answers.add(playerAnswer)
 
         // Check if quiz is complete
-        val questions = questionRepository.findByRoundIdOrderByOrderIndex(playerRound.round.id)
+        val totalQuestions = questionRepository.countByRoundIdAndLanguage(playerRound.round.id, user.language)
         val answeredCount = playerAnswerRepository.countByPlayerRoundId(playerRoundId)
 
-        if (answeredCount >= questions.size) {
+        if (answeredCount >= totalQuestions) {
             playerRound.completedAt = Instant.now()
         }
 
@@ -156,7 +156,7 @@ class QuizService(
             score = score,
             correctAnswer = correctAnswer,
             explanation = question.explanation,
-            hasNextQuestion = answeredCount < questions.size
+            hasNextQuestion = answeredCount < totalQuestions
         )
     }
 

@@ -3,6 +3,7 @@ package ch.quizzing.squizzing.service
 import ch.quizzing.squizzing.domain.AnswerOption
 import ch.quizzing.squizzing.domain.Question
 import ch.quizzing.squizzing.domain.Round
+import ch.quizzing.squizzing.domain.UserLanguage
 import ch.quizzing.squizzing.repository.QuestionRepository
 import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.Row
@@ -25,8 +26,8 @@ class QuestionImportService(
     private val questionRepository: QuestionRepository
 ) {
 
-    private fun getExistingQuestionCount(roundId: Long): Int {
-        return questionRepository.countByRoundId(roundId).toInt()
+    private fun getExistingQuestionCount(roundId: Long, language: UserLanguage): Int {
+        return questionRepository.countByRoundIdAndLanguage(roundId, language).toInt()
     }
 
     private val log = LoggerFactory.getLogger(QuestionImportService::class.java)
@@ -47,15 +48,15 @@ class QuestionImportService(
      * 10. Explanation (optional)
      */
     @Transactional
-    fun importQuestions(file: MultipartFile, round: Round): ImportResult {
+    fun importQuestions(file: MultipartFile, round: Round, language: UserLanguage): ImportResult {
         val filename = file.originalFilename ?: "unknown"
         val errors = mutableListOf<String>()
 
         return try {
             val questions = if (filename.endsWith(".xlsx") || filename.endsWith(".xls")) {
-                parseExcel(file, round, errors)
+                parseExcel(file, round, language, errors)
             } else if (filename.endsWith(".csv")) {
-                parseCsv(file, round, errors)
+                parseCsv(file, round, language, errors)
             } else {
                 return ImportResult(false, 0, listOf("Unsupported file format. Please use .xlsx, .xls, or .csv"))
             }
@@ -67,7 +68,7 @@ class QuestionImportService(
             // Save questions
             questionRepository.saveAll(questions)
 
-            log.info("Imported {} questions for round {}", questions.size, round.id)
+            log.info("Imported {} {} questions for round {}", questions.size, language.code, round.id)
             ImportResult(errors.isEmpty(), questions.size, errors)
         } catch (e: Exception) {
             log.error("Error importing questions", e)
@@ -75,18 +76,18 @@ class QuestionImportService(
         }
     }
 
-    private fun parseExcel(file: MultipartFile, round: Round, errors: MutableList<String>): List<Question> {
+    private fun parseExcel(file: MultipartFile, round: Round, language: UserLanguage, errors: MutableList<String>): List<Question> {
         val questions = mutableListOf<Question>()
         val workbook = WorkbookFactory.create(file.inputStream)
         val sheet = workbook.getSheetAt(0)
 
-        var orderIndex = getExistingQuestionCount(round.id)
+        var orderIndex = getExistingQuestionCount(round.id, language)
 
         for (rowIndex in 1..sheet.lastRowNum) { // Skip header row
             val row = sheet.getRow(rowIndex) ?: continue
 
             try {
-                val question = parseRow(row, round, orderIndex, errors, rowIndex)
+                val question = parseRow(row, round, language, orderIndex, errors, rowIndex)
                 if (question != null) {
                     questions.add(question)
                     orderIndex++
@@ -100,11 +101,11 @@ class QuestionImportService(
         return questions
     }
 
-    private fun parseCsv(file: MultipartFile, round: Round, errors: MutableList<String>): List<Question> {
+    private fun parseCsv(file: MultipartFile, round: Round, language: UserLanguage, errors: MutableList<String>): List<Question> {
         val questions = mutableListOf<Question>()
         val reader = BufferedReader(InputStreamReader(file.inputStream))
 
-        var orderIndex = getExistingQuestionCount(round.id)
+        var orderIndex = getExistingQuestionCount(round.id, language)
         var lineNumber = 0
 
         reader.useLines { lines ->
@@ -112,7 +113,7 @@ class QuestionImportService(
                 lineNumber++
                 try {
                     val columns = parseCsvLine(line)
-                    val question = parseColumns(columns, round, orderIndex, errors, lineNumber)
+                    val question = parseColumns(columns, round, language, orderIndex, errors, lineNumber)
                     if (question != null) {
                         questions.add(question)
                         orderIndex++
@@ -126,12 +127,12 @@ class QuestionImportService(
         return questions
     }
 
-    private fun parseRow(row: Row, round: Round, orderIndex: Int, errors: MutableList<String>, rowIndex: Int): Question? {
+    private fun parseRow(row: Row, round: Round, language: UserLanguage, orderIndex: Int, errors: MutableList<String>, rowIndex: Int): Question? {
         val columns = (0..9).map { getCellValue(row, it) }
-        return parseColumns(columns, round, orderIndex, errors, rowIndex)
+        return parseColumns(columns, round, language, orderIndex, errors, rowIndex)
     }
 
-    private fun parseColumns(columns: List<String>, round: Round, orderIndex: Int, errors: MutableList<String>, lineNumber: Int): Question? {
+    private fun parseColumns(columns: List<String>, round: Round, language: UserLanguage, orderIndex: Int, errors: MutableList<String>, lineNumber: Int): Question? {
         if (columns.isEmpty() || columns.all { it.isBlank() }) {
             return null // Skip empty rows
         }
@@ -162,6 +163,7 @@ class QuestionImportService(
         val question = Question(
             round = round,
             orderIndex = orderIndex,
+            language = language,
             text = questionText,
             imageFilename = questionImage,
             explanation = explanation

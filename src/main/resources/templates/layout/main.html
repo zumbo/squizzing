@@ -19,13 +19,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item" sec:authorize="isAuthenticated()">
-                        <a class="nav-link" th:href="@{/quiz}">Play Quiz</a>
+                        <a class="nav-link" th:href="@{/quiz}" th:text="#{nav.playQuiz}">Play Quiz</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/scoreboard}">Scoreboard</a>
+                        <a class="nav-link" th:href="@{/scoreboard}" th:text="#{nav.scoreboard}">Scoreboard</a>
                     </li>
                     <li class="nav-item" sec:authorize="hasRole('ADMIN')">
-                        <a class="nav-link" th:href="@{/admin}">Admin</a>
+                        <a class="nav-link" th:href="@{/admin}" th:text="#{nav.admin}">Admin</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
@@ -34,11 +34,11 @@
                     </li>
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <form th:action="@{/logout}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                            <button type="submit" class="btn btn-outline-light btn-sm" th:text="#{nav.logout}">Logout</button>
                         </form>
                     </li>
                     <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="btn btn-outline-light btn-sm" th:href="@{/auth/login}">Login</a>
+                        <a class="btn btn-outline-light btn-sm" th:href="@{/auth/login}" th:text="#{nav.login}">Login</a>
                     </li>
                 </ul>
             </div>
@@ -64,7 +64,7 @@
 
     <footer class="bg-light py-3 mt-auto">
         <div class="container text-center text-muted">
-            <small>Squizzing - SQV Online Quiz</small>
+            <small th:text="#{footer.text}">Squizzing - SQV Online Quiz</small>
         </div>
     </footer>
 

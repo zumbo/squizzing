@@ -15,7 +15,7 @@
         </div>
         <div class="card-body">
             <form th:action="@{/admin/users}" method="post" class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="email" class="form-label">Email</label>
                     <input type="email" class="form-control" id="email" name="email" required
                            placeholder="user@example.com">
@@ -25,10 +25,16 @@
                     <input type="text" class="form-control" id="displayName" name="displayName" required
                            placeholder="John Doe">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="role" class="form-label">Role</label>
                     <select class="form-select" id="role" name="role" required>
                         <option th:each="r : ${roles}" th:value="${r}" th:text="${r}">PLAYER</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="language" class="form-label">Language</label>
+                    <select class="form-select" id="language" name="language" required>
+                        <option th:each="l : ${languages}" th:value="${l}" th:text="${l.displayName}">Deutsch</option>
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
@@ -51,6 +57,7 @@
                         <th>Email</th>
                         <th>Display Name</th>
                         <th>Role</th>
+                        <th>Language</th>
                         <th>Created</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -59,22 +66,26 @@
                     <tr th:each="user : ${users}">
                         <td th:text="${user.email}">user@example.com</td>
                         <td>
-                            <form th:action="@{/admin/users/{id}(id=${user.id})}" method="post" class="d-inline">
-                                <input type="text" name="displayName" th:value="${user.displayName}"
-                                       class="form-control form-control-sm d-inline-block" style="width: 150px;">
-                                <select name="role" class="form-select form-select-sm d-inline-block" style="width: 100px;">
-                                    <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"
-                                            th:selected="${r == user.role}">PLAYER</option>
-                                </select>
-                                <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
-                            </form>
+                            <input type="text" th:form="'user-form-' + ${user.id}" name="displayName"
+                                   th:value="${user.displayName}" class="form-control form-control-sm">
                         </td>
                         <td>
-                            <span th:if="${user.role.name() == 'ADMIN'}" class="badge bg-danger">Admin</span>
-                            <span th:if="${user.role.name() == 'PLAYER'}" class="badge bg-primary">Player</span>
+                            <select th:form="'user-form-' + ${user.id}" name="role" class="form-select form-select-sm">
+                                <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"
+                                        th:selected="${r == user.role}">PLAYER</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select th:form="'user-form-' + ${user.id}" name="language" class="form-select form-select-sm">
+                                <option th:each="l : ${languages}" th:value="${l}" th:text="${l.displayName}"
+                                        th:selected="${l == user.language}">Deutsch</option>
+                            </select>
                         </td>
                         <td th:text="${#temporals.format(user.createdAt, 'dd.MM.yyyy')}">01.01.2025</td>
                         <td class="text-end">
+                            <form th:id="'user-form-' + ${user.id}" th:action="@{/admin/users/{id}(id=${user.id})}" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                            </form>
                             <form th:action="@{/admin/users/{id}/delete(id=${user.id})}" method="post"
                                   class="d-inline" onsubmit="return confirm('Delete this user?')">
                                 <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
