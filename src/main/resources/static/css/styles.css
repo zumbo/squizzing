@@ -26,15 +26,17 @@ main {
 .quiz-timer-bar {
     height: 100%;
     background-color: #0d6efd;
-    transition: width 0.1s linear;
+    transition: width 0.1s linear, background-color 0.3s ease;
 }
 
-.quiz-timer-bar.warning {
-    background-color: #ffc107;
+.quiz-timer-bar.full-score {
+    background-color: #198754;
 }
 
-.quiz-timer-bar.danger {
-    background-color: #dc3545;
+.quiz-timer-bar.expired {
+    background-color: #ffffff;
+    border: 2px solid #dc3545;
+    box-sizing: border-box;
 }
 
 /* Answer Options */

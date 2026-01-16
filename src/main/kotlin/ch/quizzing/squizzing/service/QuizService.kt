@@ -1,5 +1,6 @@
 package ch.quizzing.squizzing.service
 
+import ch.quizzing.squizzing.config.AppProperties
 import ch.quizzing.squizzing.domain.*
 import ch.quizzing.squizzing.repository.*
 import org.springframework.stereotype.Service
@@ -30,14 +31,9 @@ class QuizService(
     private val questionRepository: QuestionRepository,
     private val answerOptionRepository: AnswerOptionRepository,
     private val playerRoundRepository: PlayerRoundRepository,
-    private val playerAnswerRepository: PlayerAnswerRepository
+    private val playerAnswerRepository: PlayerAnswerRepository,
+    private val appProperties: AppProperties
 ) {
-
-    companion object {
-        const val TIMER_SECONDS = 10
-        const val MAX_SCORE = 100
-        const val MIN_SCORE = 50
-    }
 
     fun canPlayRound(userId: Long, roundId: Long): Boolean {
         // Check if round exists and is active
@@ -163,17 +159,20 @@ class QuizService(
     fun calculateScore(shownAt: Instant, answeredAt: Instant, correct: Boolean): Int {
         if (!correct) return 0
 
+        val scoring = appProperties.scoring
         val durationMs = Duration.between(shownAt, answeredAt).toMillis()
         val seconds = durationMs / 1000.0
 
         return when {
-            seconds <= 0 -> MAX_SCORE
-            seconds >= TIMER_SECONDS -> MIN_SCORE
+            seconds <= scoring.fullScoreSeconds -> scoring.maxScore
+            seconds >= scoring.minScoreSeconds -> scoring.minScore
             else -> {
-                // Linear interpolation: 100 at 0s, 50 at 10s
-                val scoreRange = MAX_SCORE - MIN_SCORE
-                val timeRatio = seconds / TIMER_SECONDS
-                (MAX_SCORE - (scoreRange * timeRatio)).toInt()
+                // Linear interpolation between fullScoreSeconds and minScoreSeconds
+                val scoreRange = scoring.maxScore - scoring.minScore
+                val timeRange = scoring.minScoreSeconds - scoring.fullScoreSeconds
+                val timeElapsed = seconds - scoring.fullScoreSeconds
+                val timeRatio = timeElapsed / timeRange
+                (scoring.maxScore - (scoreRange * timeRatio)).toInt()
             }
         }
     }

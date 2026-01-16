@@ -3,7 +3,7 @@ spring:
     name: squizzing
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/squizzing
+    url: jdbc:postgresql://localhost:5433/squizzing
     username: ${DB_USERNAME:squizzing}
     password: ${DB_PASSWORD:squizzing}
 
@@ -47,3 +47,8 @@ squizzing:
   base-url: ${BASE_URL:http://localhost:8080}
   magic-link:
     expiry-minutes: 15
+  scoring:
+    max-score: 100
+    min-score: 50
+    full-score-seconds: 3.0
+    min-score-seconds: 20.0

@@ -12,7 +12,7 @@
             <span class="badge bg-secondary fs-6" th:text="#{question.progress(${questionNumber}, ${totalQuestions})}">
                 Question 1 of 20
             </span>
-            <span id="timer-display" class="badge bg-primary fs-6">10s</span>
+            <span id="timer-display" class="badge bg-success fs-6">10s</span>
         </div>
 
         <!-- Timer Bar -->
@@ -57,6 +57,7 @@
 
     <script th:inline="javascript">
         const TIMER_SECONDS = [[${timerSeconds}]];
+        const FULL_SCORE_SECONDS = [[${fullScoreSeconds}]];
         let timeRemaining = TIMER_SECONDS;
         let timerInterval;
         let selectedAnswerId = null;
@@ -79,11 +80,17 @@
         function updateTimer() {
             const timerBar = document.getElementById('timer-bar');
             const timerDisplay = document.getElementById('timer-display');
+            const timeElapsed = TIMER_SECONDS - timeRemaining;
 
             if (timeRemaining <= 0) {
                 clearInterval(timerInterval);
-                // Auto-submit when time runs out
-                document.getElementById('answer-form').submit();
+                // Timer expired - keep question active, player can still answer for minimum points
+                timerBar.style.width = '0%';
+                timerBar.classList.remove('full-score');
+                timerBar.classList.add('expired');
+                timerDisplay.textContent = '0s';
+                timerDisplay.classList.remove('bg-success', 'bg-primary');
+                timerDisplay.classList.add('bg-light', 'text-danger', 'border', 'border-danger');
                 return;
             }
 
@@ -92,14 +99,22 @@
             timerBar.style.width = percentage + '%';
             timerDisplay.textContent = Math.ceil(timeRemaining) + 's';
 
-            // Color changes
-            if (percentage <= 30) {
-                timerBar.classList.add('danger');
-                timerBar.classList.remove('warning');
-            } else if (percentage <= 60) {
-                timerBar.classList.add('warning');
+            // Color changes based on scoring thresholds
+            if (timeElapsed < FULL_SCORE_SECONDS) {
+                // Green during full-score time
+                timerBar.classList.add('full-score');
+                timerDisplay.classList.add('bg-success');
+                timerDisplay.classList.remove('bg-primary');
+            } else {
+                // Blue after full-score time ends
+                timerBar.classList.remove('full-score');
+                timerDisplay.classList.remove('bg-success');
+                timerDisplay.classList.add('bg-primary');
             }
         }
+
+        // Initialize timer bar as green (full-score)
+        document.getElementById('timer-bar').classList.add('full-score');
 
         // Start timer
         timerInterval = setInterval(updateTimer, 100);

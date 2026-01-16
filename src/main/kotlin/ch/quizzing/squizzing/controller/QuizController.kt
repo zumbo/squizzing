@@ -1,5 +1,6 @@
 package ch.quizzing.squizzing.controller
 
+import ch.quizzing.squizzing.config.AppProperties
 import ch.quizzing.squizzing.service.QuizService
 import ch.quizzing.squizzing.service.RoundService
 import ch.quizzing.squizzing.service.UserPrincipal
@@ -15,7 +16,8 @@ import java.time.Instant
 @RequestMapping("/quiz")
 class QuizController(
     private val quizService: QuizService,
-    private val roundService: RoundService
+    private val roundService: RoundService,
+    private val appProperties: AppProperties
 ) {
 
     @GetMapping
@@ -69,7 +71,8 @@ class QuizController(
         model.addAttribute("shuffledAnswers", quizState.currentQuestion!!.answerOptions.shuffled())
         model.addAttribute("questionNumber", quizState.currentQuestionIndex + 1)
         model.addAttribute("totalQuestions", quizState.totalQuestions)
-        model.addAttribute("timerSeconds", QuizService.TIMER_SECONDS)
+        model.addAttribute("timerSeconds", appProperties.scoring.minScoreSeconds.toInt())
+        model.addAttribute("fullScoreSeconds", appProperties.scoring.fullScoreSeconds)
 
         return "quiz/question"
     }
@@ -85,7 +88,7 @@ class QuizController(
         redirectAttributes: RedirectAttributes
     ): String {
         val questionShownAt = session.getAttribute("questionShownAt") as? Instant
-            ?: Instant.now().minusSeconds(QuizService.TIMER_SECONDS.toLong())
+            ?: Instant.now().minusSeconds(appProperties.scoring.minScoreSeconds.toLong())
 
         val result = quizService.submitAnswer(
             user = principal.user,
@@ -141,7 +144,8 @@ class QuizController(
         model.addAttribute("shuffledAnswers", quizState.currentQuestion!!.answerOptions.shuffled())
         model.addAttribute("questionNumber", quizState.currentQuestionIndex + 1)
         model.addAttribute("totalQuestions", quizState.totalQuestions)
-        model.addAttribute("timerSeconds", QuizService.TIMER_SECONDS)
+        model.addAttribute("timerSeconds", appProperties.scoring.minScoreSeconds.toInt())
+        model.addAttribute("fullScoreSeconds", appProperties.scoring.fullScoreSeconds)
 
         return "quiz/question"
     }
