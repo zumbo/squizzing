@@ -18,7 +18,8 @@ class ImageController(
 
     @GetMapping("/{*filename}")
     fun serveImage(@PathVariable filename: String): ResponseEntity<Resource> {
-        val resource = imageStorageService.load(filename)
+        val normalizedFilename = filename.removePrefix("/")
+        val resource = imageStorageService.load(normalizedFilename)
 
         val contentType = when {
             filename.endsWith(".png", ignoreCase = true) -> MediaType.IMAGE_PNG

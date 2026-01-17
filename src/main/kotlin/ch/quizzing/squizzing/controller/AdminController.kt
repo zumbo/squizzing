@@ -139,6 +139,32 @@ class AdminController(
         return "redirect:/admin/rounds/${id}/questions"
     }
 
+    @PostMapping("/rounds/{id}/images/upload")
+    fun uploadImages(
+        @PathVariable id: Long,
+        @RequestParam imageFiles: List<MultipartFile>,
+        redirectAttributes: RedirectAttributes
+    ): String {
+        val round = roundService.findById(id)
+        if (round == null) {
+            redirectAttributes.addFlashAttribute("error", "Round not found")
+            return "redirect:/admin/rounds"
+        }
+
+        val uploadedFilenames = imageFiles
+            .filter { !it.isEmpty }
+            .map { imageStorageService.store(it, "questions") }
+
+        if (uploadedFilenames.isNotEmpty()) {
+            redirectAttributes.addFlashAttribute("uploadedImages", uploadedFilenames)
+            redirectAttributes.addFlashAttribute("success", "Uploaded ${uploadedFilenames.size} image(s)")
+        } else {
+            redirectAttributes.addFlashAttribute("error", "No images were uploaded")
+        }
+
+        return "redirect:/admin/rounds/${id}/questions"
+    }
+
     @PostMapping("/questions/{id}")
     @Transactional
     fun updateQuestion(
@@ -155,6 +181,9 @@ class AdminController(
         @RequestParam answerId3: Long,
         @RequestParam answerId4: Long,
         @RequestParam correctAnswer: Int,
+        @RequestParam(required = false) imageUrl: String?,
+        @RequestParam(required = false) imageFile: MultipartFile?,
+        @RequestParam(required = false) removeImage: Boolean?,
         redirectAttributes: RedirectAttributes
     ): String {
         val question = questionRepository.findById(id).orElse(null)
@@ -165,6 +194,35 @@ class AdminController(
 
         question.text = text?.takeIf { it.isNotBlank() }
         question.explanation = explanation?.takeIf { it.isNotBlank() }
+
+        // Handle image updates
+        if (removeImage == true) {
+            // Delete old local file if it exists and is not a URL
+            question.imageFilename?.let { oldFilename ->
+                if (!oldFilename.startsWith("http")) {
+                    imageStorageService.delete(oldFilename)
+                }
+            }
+            question.imageFilename = null
+        } else if (imageFile != null && !imageFile.isEmpty) {
+            // Delete old local file if it exists and is not a URL
+            question.imageFilename?.let { oldFilename ->
+                if (!oldFilename.startsWith("http")) {
+                    imageStorageService.delete(oldFilename)
+                }
+            }
+            // Store new file
+            question.imageFilename = imageStorageService.store(imageFile, "questions")
+        } else if (!imageUrl.isNullOrBlank()) {
+            // Delete old local file if it exists and is not a URL
+            question.imageFilename?.let { oldFilename ->
+                if (!oldFilename.startsWith("http")) {
+                    imageStorageService.delete(oldFilename)
+                }
+            }
+            // Use the URL directly
+            question.imageFilename = imageUrl
+        }
 
         val answers = mapOf(
             answerId1 to Pair(answer1, correctAnswer == 1),

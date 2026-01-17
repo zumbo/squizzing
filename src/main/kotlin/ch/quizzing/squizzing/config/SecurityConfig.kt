@@ -32,6 +32,9 @@ class SecurityConfig {
             }
             .csrf { csrf ->
                 csrf.ignoringRequestMatchers("/auth/magic-link")
+                csrf.ignoringRequestMatchers("/admin/rounds/*/images/upload")
+                csrf.ignoringRequestMatchers("/admin/rounds/*/questions/import")
+                csrf.ignoringRequestMatchers("/admin/questions/*")
             }
             .exceptionHandling { exceptions ->
                 exceptions.authenticationEntryPoint(LoginUrlAuthenticationEntryPoint("/auth/login"))

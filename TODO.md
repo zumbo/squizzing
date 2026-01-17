@@ -1,2 +1,1 @@
 - Display clock symbol for countdown
-- Add images.

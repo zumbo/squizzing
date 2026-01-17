@@ -27,7 +27,7 @@
                     Question text goes here
                 </h4>
                 <div th:if="${question.imageFilename != null}" class="text-center mb-4">
-                    <img th:src="@{/images/{filename}(filename=${question.imageFilename})}"
+                    <img th:src="${question.imageFilename.startsWith('http') ? question.imageFilename : '/images/' + question.imageFilename}"
                          alt="Question image" class="question-image img-fluid rounded">
                 </div>
             </div>
