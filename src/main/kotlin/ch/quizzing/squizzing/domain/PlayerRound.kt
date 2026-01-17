@@ -29,6 +29,8 @@ class PlayerRound(
     @Column(nullable = false)
     var totalScore: Int = 0,
 
+    var currentQuestionShownAt: Instant? = null,
+
     @OneToMany(mappedBy = "playerRound", cascade = [CascadeType.ALL], orphanRemoval = true)
     val answers: MutableSet<PlayerAnswer> = mutableSetOf()
 ) {

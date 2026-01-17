@@ -81,12 +81,22 @@ class QuizService(
             null
         }
 
+        // Set question shown timestamp if not already set (first time showing this question)
+        val questionShownAt = if (currentQuestion != null && playerRound.currentQuestionShownAt == null) {
+            val now = Instant.now()
+            playerRound.currentQuestionShownAt = now
+            playerRoundRepository.save(playerRound)
+            now
+        } else {
+            playerRound.currentQuestionShownAt
+        }
+
         return QuizState(
             playerRound = playerRound,
             currentQuestionIndex = answeredCount,
             totalQuestions = questions.size,
             currentQuestion = currentQuestion,
-            questionShownAt = Instant.now(),
+            questionShownAt = questionShownAt,
             isCompleted = currentQuestion == null
         )
     }
@@ -96,8 +106,7 @@ class QuizService(
         user: User,
         playerRoundId: Long,
         questionId: Long,
-        answerId: Long?,
-        questionShownAt: Instant
+        answerId: Long?
     ): AnswerResult? {
         val playerRound = playerRoundRepository.findById(playerRoundId).orElse(null) ?: return null
         if (playerRound.user.id != user.id) return null
@@ -109,6 +118,9 @@ class QuizService(
         if (playerAnswerRepository.existsByPlayerRoundIdAndQuestionId(playerRoundId, questionId)) {
             return null
         }
+
+        // Use server-side timestamp
+        val questionShownAt = playerRound.currentQuestionShownAt ?: Instant.now()
 
         val selectedAnswer = if (answerId != null) {
             answerOptionRepository.findById(answerId).orElse(null)
@@ -131,9 +143,10 @@ class QuizService(
         )
         playerAnswerRepository.save(playerAnswer)
 
-        // Update total score
+        // Update total score and clear current question timestamp for next question
         playerRound.totalScore += score
         playerRound.answers.add(playerAnswer)
+        playerRound.currentQuestionShownAt = null
 
         // Check if quiz is complete
         val totalQuestions = questionRepository.countByRoundIdAndLanguage(playerRound.round.id, user.language)

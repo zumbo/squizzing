@@ -1,3 +1,2 @@
-- Check timing on the server.
 - Display clock symbol for countdown
 - Add images.

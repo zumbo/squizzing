@@ -4,12 +4,12 @@ import ch.quizzing.squizzing.config.AppProperties
 import ch.quizzing.squizzing.service.QuizService
 import ch.quizzing.squizzing.service.RoundService
 import ch.quizzing.squizzing.service.UserPrincipal
-import jakarta.servlet.http.HttpSession
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.servlet.mvc.support.RedirectAttributes
+import java.time.Duration
 import java.time.Instant
 
 @Controller
@@ -40,7 +40,6 @@ class QuizController(
     fun startQuiz(
         @PathVariable roundId: Long,
         @AuthenticationPrincipal principal: UserPrincipal,
-        session: HttpSession,
         model: Model,
         redirectAttributes: RedirectAttributes
     ): String {
@@ -63,8 +62,8 @@ class QuizController(
             return "redirect:/quiz/result/${quizState.playerRound.id}"
         }
 
-        // Store question shown timestamp in session
-        session.setAttribute("questionShownAt", quizState.questionShownAt)
+        // Calculate elapsed time from server-side timestamp
+        val elapsedSeconds = Duration.between(quizState.questionShownAt, Instant.now()).toMillis() / 1000.0
 
         model.addAttribute("state", quizState)
         model.addAttribute("question", quizState.currentQuestion)
@@ -73,6 +72,7 @@ class QuizController(
         model.addAttribute("totalQuestions", quizState.totalQuestions)
         model.addAttribute("timerSeconds", appProperties.scoring.minScoreSeconds.toInt())
         model.addAttribute("fullScoreSeconds", appProperties.scoring.fullScoreSeconds)
+        model.addAttribute("elapsedSeconds", elapsedSeconds)
 
         return "quiz/question"
     }
@@ -83,28 +83,20 @@ class QuizController(
         @RequestParam questionId: Long,
         @RequestParam(required = false) answerId: Long?,
         @AuthenticationPrincipal principal: UserPrincipal,
-        session: HttpSession,
         model: Model,
         redirectAttributes: RedirectAttributes
     ): String {
-        val questionShownAt = session.getAttribute("questionShownAt") as? Instant
-            ?: Instant.now().minusSeconds(appProperties.scoring.minScoreSeconds.toLong())
-
         val result = quizService.submitAnswer(
             user = principal.user,
             playerRoundId = playerRoundId,
             questionId = questionId,
-            answerId = answerId,
-            questionShownAt = questionShownAt
+            answerId = answerId
         )
 
         if (result == null) {
             redirectAttributes.addFlashAttribute("error", "Could not submit answer.")
             return "redirect:/"
         }
-
-        // Clear session timestamp
-        session.removeAttribute("questionShownAt")
 
         model.addAttribute("result", result)
         model.addAttribute("playerRoundId", playerRoundId)
@@ -116,7 +108,6 @@ class QuizController(
     fun continueQuiz(
         @PathVariable playerRoundId: Long,
         @AuthenticationPrincipal principal: UserPrincipal,
-        session: HttpSession,
         model: Model,
         redirectAttributes: RedirectAttributes
     ): String {
@@ -136,8 +127,8 @@ class QuizController(
             return "redirect:/quiz/result/$playerRoundId"
         }
 
-        // Store question shown timestamp in session
-        session.setAttribute("questionShownAt", Instant.now())
+        // Calculate elapsed time from server-side timestamp
+        val elapsedSeconds = Duration.between(quizState.questionShownAt, Instant.now()).toMillis() / 1000.0
 
         model.addAttribute("state", quizState)
         model.addAttribute("question", quizState.currentQuestion)
@@ -146,6 +137,7 @@ class QuizController(
         model.addAttribute("totalQuestions", quizState.totalQuestions)
         model.addAttribute("timerSeconds", appProperties.scoring.minScoreSeconds.toInt())
         model.addAttribute("fullScoreSeconds", appProperties.scoring.fullScoreSeconds)
+        model.addAttribute("elapsedSeconds", elapsedSeconds)
 
         return "quiz/question"
     }

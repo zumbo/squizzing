@@ -12,12 +12,12 @@
             <span class="badge bg-secondary fs-6" th:text="#{question.progress(${questionNumber}, ${totalQuestions})}">
                 Question 1 of 20
             </span>
-            <span id="timer-display" class="badge bg-success fs-6">10s</span>
+            <span id="timer-display" class="badge fs-6">--</span>
         </div>
 
         <!-- Timer Bar -->
         <div class="quiz-timer mb-4">
-            <div id="timer-bar" class="quiz-timer-bar" style="width: 100%;"></div>
+            <div id="timer-bar" class="quiz-timer-bar"></div>
         </div>
 
         <!-- Question Card -->
@@ -58,7 +58,8 @@
     <script th:inline="javascript">
         const TIMER_SECONDS = [[${timerSeconds}]];
         const FULL_SCORE_SECONDS = [[${fullScoreSeconds}]];
-        let timeRemaining = TIMER_SECONDS;
+        const ELAPSED_SECONDS = [[${elapsedSeconds}]];
+        let timeRemaining = Math.max(0, TIMER_SECONDS - ELAPSED_SECONDS);
         let timerInterval;
         let selectedAnswerId = null;
 
@@ -77,13 +78,12 @@
             document.getElementById('answer-form').submit();
         }
 
-        function updateTimer() {
+        function updateTimerDisplay() {
             const timerBar = document.getElementById('timer-bar');
             const timerDisplay = document.getElementById('timer-display');
             const timeElapsed = TIMER_SECONDS - timeRemaining;
 
             if (timeRemaining <= 0) {
-                clearInterval(timerInterval);
                 // Timer expired - keep question active, player can still answer for minimum points
                 timerBar.style.width = '0%';
                 timerBar.classList.remove('full-score');
@@ -91,10 +91,9 @@
                 timerDisplay.textContent = '0s';
                 timerDisplay.classList.remove('bg-success', 'bg-primary');
                 timerDisplay.classList.add('bg-light', 'text-danger', 'border', 'border-danger');
-                return;
+                return true; // Timer expired
             }
 
-            timeRemaining -= 0.1;
             const percentage = (timeRemaining / TIMER_SECONDS) * 100;
             timerBar.style.width = percentage + '%';
             timerDisplay.textContent = Math.ceil(timeRemaining) + 's';
@@ -111,13 +110,23 @@
                 timerDisplay.classList.remove('bg-success');
                 timerDisplay.classList.add('bg-primary');
             }
+            return false; // Timer not expired
         }
 
-        // Initialize timer bar as green (full-score)
-        document.getElementById('timer-bar').classList.add('full-score');
+        function updateTimer() {
+            timeRemaining -= 0.1;
+            if (updateTimerDisplay()) {
+                clearInterval(timerInterval);
+            }
+        }
 
-        // Start timer
-        timerInterval = setInterval(updateTimer, 100);
+        // Initialize display based on server-side elapsed time
+        updateTimerDisplay();
+
+        // Only start timer if not already expired
+        if (timeRemaining > 0) {
+            timerInterval = setInterval(updateTimer, 100);
+        }
 
         // Allow keyboard selection (1-4 keys)
         document.addEventListener('keydown', function(e) {
